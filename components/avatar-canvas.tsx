@@ -23,7 +23,11 @@ export default function AvatarCanvas() {
         flat
       >
         <mesh position={[0, -1, 0]}>
-          <directionalLight position={[1, 1, -1]} color={"0xFFFFFF"} />
+          <directionalLight
+            intensity={3}
+            position={[0, 3, 2]}
+            color={"0xFFFFFF"}
+          />
           <Model url={model.model} />
           <color attach="background" args={["#f7f7f7"]} />
           <OrbitControls
@@ -31,7 +35,6 @@ export default function AvatarCanvas() {
             enablePan={false}
             enableDamping={false}
           />
-          <gridHelper />
         </mesh>
       </Canvas>
     </div>

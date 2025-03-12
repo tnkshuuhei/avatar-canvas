@@ -1,3 +1,5 @@
+"use client";
+
 import { FC, useState, useEffect } from "react";
 import { Html } from "@react-three/drei";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";

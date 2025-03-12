@@ -18,8 +18,8 @@ export default function AvatarCanvas() {
   return (
     <div ref={gltfCanvasParentRef} style={{ height: 700, width: 600 }}>
       <Canvas
-        frameloop="demand"
-        camera={{ fov: 20, near: 0.1, far: 300, position: [0, 1, -7] }}
+        frameloop="always"
+        camera={{ fov: 20, near: 0.1, far: 300, position: [0, 1, -4] }}
         flat
       >
         <mesh position={[0, -1, 0]}>
@@ -29,7 +29,7 @@ export default function AvatarCanvas() {
             color={"0xFFFFFF"}
           />
           <Model url={model.model} />
-          <color attach="background" args={["#f7f7f7"]} />
+          {/* <color attach="background" args={["#f7f7f7"]} /> */}
           <OrbitControls
             enableZoom={true}
             enablePan={false}

@@ -92,10 +92,10 @@ export default function Home() {
             onChange={handleTextChange}
             className="w-full"
           />
-          <div className="flex gap-2 cursor-pointer">
+          <div className="flex gap-2">
             <Button
               onClick={startSpeaking}
-              className={`${
+              className={`cursor-pointer ${
                 isSpeaking
                   ? "bg-red-500 hover:bg-red-600"
                   : "bg-blue-500 hover:bg-blue-600"
@@ -104,7 +104,11 @@ export default function Home() {
               {isSpeaking ? "Speaking" : "Speak"}
             </Button>
             {isSpeaking && (
-              <Button onClick={stopSpeaking} variant="outline">
+              <Button
+                className="cursor-pointer"
+                onClick={stopSpeaking}
+                variant="outline"
+              >
                 Stop
               </Button>
             )}

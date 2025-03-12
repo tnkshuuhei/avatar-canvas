@@ -5,14 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import Model from "@/components/model";
 import { OrbitControls } from "@react-three/drei";
 
-const model = {
-  model: "/models/avatar.vrm",
-  title: "Test Model",
-  desctiption:
-    "This is a test model to demonstrate the use of VRM models in a Next.js app.",
-};
-
-export default function AvatarCanvas() {
+export default function AvatarCanvas({ model }: { model: string }) {
   const gltfCanvasParentRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -28,8 +21,7 @@ export default function AvatarCanvas() {
             position={[0, 3, 2]}
             color={"0xFFFFFF"}
           />
-          <Model url={model.model} />
-          {/* <color attach="background" args={["#f7f7f7"]} /> */}
+          <Model url={model} />
           <OrbitControls
             enableZoom={true}
             enablePan={false}

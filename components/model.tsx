@@ -1,5 +1,6 @@
 "use client";
 
+import * as THREE from "three";
 import { FC, useState, useEffect, useRef } from "react";
 import { Html } from "@react-three/drei";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -25,6 +26,31 @@ interface LipSyncState {
   syllableDuration: number;
 }
 
+// Function to reset and position the arms
+const positionArms = (vrm: VRM) => {
+  if (!vrm.humanoid) return;
+
+  // Position right arm
+  const rightUpperArm = vrm.humanoid.getRawBoneNode("rightUpperArm");
+  const rightLowerArm = vrm.humanoid.getRawBoneNode("rightLowerArm");
+  if (rightUpperArm && rightLowerArm) {
+    // Right arm rotation parameters
+    rightUpperArm.rotation.z = -1.2; // Negative value moves arm down/inward
+    rightUpperArm.rotation.x = 0.1; // Slight forward tilt
+    rightLowerArm.rotation.x = 0.1; // Slight elbow bend
+  }
+
+  // Position left arm
+  const leftUpperArm = vrm.humanoid.getRawBoneNode("leftUpperArm");
+  const leftLowerArm = vrm.humanoid.getRawBoneNode("leftLowerArm");
+  if (leftUpperArm && leftLowerArm) {
+    // Left arm rotation parameters (mirrored values)
+    leftUpperArm.rotation.z = 1.2; // Positive value moves arm down/inward
+    leftUpperArm.rotation.x = 0.1; // Slight forward tilt
+    leftLowerArm.rotation.x = 0.5; // Slight elbow bend
+  }
+};
+
 const Model: FC<ModelProps> = ({ url }: ModelProps) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [progress, setProgress] = useState<number>(0);
@@ -39,13 +65,103 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
     syllableDuration: 0.15, // Average duration for a syllable in seconds
   });
 
+  const sizes = {
+    width: innerWidth,
+    height: innerHeight,
+  };
+
   // Load the VRM model
   useEffect(() => {
+    // Initialize the renderer
+    // - antialias: true (smoother edges)
+    // - alpha: true (transparent background)
+    // - preserveDrawingBuffer: true (allows saving canvas as image)
+    // - precision: "highp" (high precision for shaders)
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true,
+      precision: "highp",
+    });
+
+    renderer.setSize(sizes.width, sizes.height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      sizes.width / sizes.height,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 1.2, -2);
+    camera.lookAt(0, 1.2, 0);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf7f7f7);
+
+    let time = 0;
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      // update time(If you increase the value, the movement will be faster)
+      time += 0.01;
+
+      // handle VRM model animation
+      if (vrmRef.current) {
+        const vrm = vrmRef.current;
+
+        // standing motion
+        // - base position: -0.2
+        // - oscillation speed: time * 5 (higher value makes it oscillate faster)
+        // - oscillation width: 0.005 (higher value makes it oscillate wider)
+        vrm.scene.position.y = -0.2 + Math.sin(time * 5) * 0.005;
+
+        // body rotation (side-to-side swaying)
+        // - oscillation speed: time * 0.5 (higher value makes it sway faster)
+        // - oscillation width: 0.01 (higher value makes it sway wider)
+        vrm.scene.rotation.y = Math.sin(time * 0.5) * 0.01;
+
+        // blinking process
+        // - occurrence probability: 0.005 (higher value makes blinking more frequent)
+        // - blink duration: setTimeout 50ms (duration of closed eyelids)
+        if (vrm.expressionManager && Math.random() < 0.005) {
+          const blink = async () => {
+            // close eyelids
+            vrm.expressionManager?.setValue("blinkLeft", 1.0);
+            vrm.expressionManager?.setValue("blinkRight", 1.0);
+            vrm.expressionManager?.update();
+
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            // open eyelids (gradual opening process)
+            // - opening speed: decreasing by 0.1 every 5ms
+            for (let i = 1.0; i >= 0; i -= 0.1) {
+              vrm.expressionManager?.setValue("blinkLeft", i);
+              vrm.expressionManager?.setValue("blinkRight", i);
+              vrm.expressionManager?.update();
+              await new Promise((resolve) => setTimeout(resolve, 5));
+            }
+          };
+          blink();
+        }
+      }
+
+      renderer.render(scene, camera);
+    };
+
     if (!gltf) {
       const loader = new GLTFLoader();
       loader.register((parser) => {
         return new VRMLoaderPlugin(parser);
       });
+
+      const vrm = vrmRef.current;
+      console.log("vrm: ", vrm);
 
       loader.load(
         url,
@@ -66,6 +182,13 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
           console.log(error);
         }
       );
+    } else {
+      const vrm = vrmRef.current;
+
+      if (vrm?.humanoid) {
+        animate();
+        positionArms(vrm);
+      }
     }
   }, [gltf, url]);
 
@@ -117,13 +240,6 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
     };
   }, []);
 
-  // Simplified function to estimate syllables in Japanese text
-  // const estimateSyllables = (text: string): number => {
-  //   // For Japanese, we can roughly estimate syllables based on character count
-  //   // (this is a simplification - a more accurate approach would use a proper Japanese tokenizer)
-  //   return text.length;
-  // };
-
   // Animation loop for lip-sync
   useFrame((_, delta) => {
     if (!vrmRef.current) return;
@@ -146,7 +262,7 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
       const fastNoise = Math.sin(now * 10) * 0.1; // Fast subtle variations
       const slowNoise = Math.sin(now * 3) * 0.1; // Slower variations
 
-      // Create a more natural rhythm for Japanese speech
+      // Create a more natural rhythm
       const baseSpeed = 5.0; // Speed of mouth movement
       const time = lipSync.elapsedTime * baseSpeed;
 
@@ -189,6 +305,7 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
 
       // Update the blend shapes
       vrm.update(delta);
+      positionArms(vrm);
     } else {
       // Gradually close mouth when not speaking for smoother transition
       if (vrmRef.current.expressionManager) {
@@ -209,6 +326,7 @@ const Model: FC<ModelProps> = ({ url }: ModelProps) => {
           }
 
           vrm.update(delta);
+          positionArms(vrm);
         }
       }
     }

@@ -1,36 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 3D avatar with AI Agent
 
-## Getting Started
+## Credits and references
 
-First, run the development server:
+I implemented this application with the help of these repositories and articles. I really appreciate all of them.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [takahiroanno2024/anno-ai-avatar - Github](https://github.com/takahiroanno2024/anno-ai-avatar)
+- [東京都知事選「AI あんの」技術メモ - Zenn](https://zenn.dev/yasuna/articles/16feb164a09e01)
+- [web アプリに 3D アバター（VRoid）を表示する方法 - Zenn](https://zenn.dev/t_ponta/articles/f131defa22ce1f)
+- [Next.js(TypeScript) + react-three-fiber で VRM を表示する](https://synamon.hatenablog.com/entry/2023/06/06/181313)
+- [Next.js に Three.js を導入して表示させるまでの手順【TypeScript】 - Qiita](https://qiita.com/TK-C/items/1a7ce969333284f57079)
+- [Next.js のアプリで Three.js の 3D モデルを使用 - Qiita](https://qiita.com/btt_17/items/6d2a59826b6a10685486)
+- [VRM と three.js と react-three-fiber に関する技術メモ - Qiita](https://gist.github.com/ahuglajbclajep/6ea07f6feb250aa776afa141a35e725b)
+- [VRoid Studio](https://vroid.com/studio) - Used for creating 3D character models. Models are [here](/public/models/)

@@ -1,6 +1,15 @@
-export const models = [
+type Model = {
+  id: string;
+  model: string;
+  image: string;
+  title: string;
+  desctiption: string;
+  tags: string[];
+  voice: string;
+};
+export const models: Model[] = [
   {
-    id: "sustain-focus",
+    id: "sustainability",
     model: "/models/panda.vrm",
     image: "/thumbnail/panda.png",
     title: "Sustain Focus",
@@ -12,9 +21,10 @@ export const models = [
       "Governance Structure Analysis",
       "Community Participation Scorer",
     ],
+    voice: "EXAVITQu4vr4xnSDxMaL", // Sarah
   },
   {
-    id: "equity-max",
+    id: "equity",
     model: "/models/avatar-1.vrm",
     image: "/thumbnail/avatar-1.png",
     title: "Equity Max",
@@ -26,9 +36,10 @@ export const models = [
       "Underserved Population Targeting",
       "Community Input Interpreter",
     ],
+    voice: "bIHbv24MWmeRgasZH58o", // Will
   },
   {
-    id: "community-centric",
+    id: "community",
     model: "/models/avatar-2.vrm",
     image: "/thumbnail/avatar-2.png",
     title: "Community Centric",
@@ -40,9 +51,10 @@ export const models = [
       "Governance Structure Analysis",
       "Community Participation Scorer",
     ],
+    voice: "FGY2WhTYpPnrIDTdsKH5", // Laura
   },
   {
-    id: "inovation-engine",
+    id: "inovation",
     model: "/models/avatar-3.vrm",
     image: "/thumbnail/avatar-3.png",
     title: "Innovation Engine",
@@ -54,9 +66,10 @@ export const models = [
       "Governance Structure Analysis",
       "Community Participation Scorer",
     ],
+    voice: "9BWtsMINqrJLrRacOk9x", // Aria
   },
   {
-    id: "efficient-alloc",
+    id: "efficiency",
     model: "/models/avatar-4.vrm",
     image: "/thumbnail/avatar-4.png",
     title: "Efficient Alloc",
@@ -68,5 +81,6 @@ export const models = [
       "Scalability Predictor",
       "Cost-Benefit Analyzer",
     ],
+    voice: "cgSgspJ2msm6clMCkdW9", // Jessica
   },
 ];

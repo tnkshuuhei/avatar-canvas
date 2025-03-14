@@ -1,5 +1,8 @@
 import { models } from "@/utils/model";
 import AvatarPage from "./avatar-page";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Github } from "lucide-react";
 
 export default async function Page({
   params,
@@ -18,11 +21,12 @@ export default async function Page({
           <h1 className="text-3xl sm:text-4xl font-bold mb-4 md:mb-6 tracking-tight">
             {model?.title}
           </h1>
+
           <p className="text-base sm:text-lg mb-8 max-w-3xl">
             {model?.desctiption}
           </p>
 
-          <div className="mt-8 md:mt-12">
+          <div className="my-4 md:my-8">
             <h2 className="text-xl sm:text-2xl font-semibold mb-4">
               Key Features
             </h2>
@@ -35,6 +39,19 @@ export default async function Page({
               ))}
             </ul>
           </div>
+          <Link
+            href={`https://github.com/evalscience/deepgov-modelspec/blob/main/agents/${model?.id}/model-spec.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 h-10 cursor-pointer"
+            >
+              <Github className="h-4 w-4" />
+              <span className="hidden sm:inline">View Model Spec</span>
+            </Button>
+          </Link>
         </div>
 
         {/* Avatar Component */}

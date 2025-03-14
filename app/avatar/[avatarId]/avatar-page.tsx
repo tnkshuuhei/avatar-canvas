@@ -204,7 +204,7 @@ export default function AvatarPage({ avatarId }: { avatarId: string }) {
 
               <Button
                 type="submit"
-                className="w-full p-3 text-base font-medium "
+                className="w-full p-3 text-base font-medium cursor-pointer"
                 disabled={isLoading || isLoadingStream || isSpeaking}
               >
                 {isLoading ? (

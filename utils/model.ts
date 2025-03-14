@@ -1,8 +1,8 @@
 export const models = [
   {
     id: "sustain-focus",
-    model: "/models/avatar-0.vrm",
-    image: "/thumbnail/avatar-0.png",
+    model: "/models/panda.vrm",
+    image: "/thumbnail/panda.png",
     title: "Sustain Focus",
     desctiption:
       "SustainFocus employs a sophisticated balanced framework that considers multiple stakeholder perspectives. The model evaluates funding decisions based on sustainability, long-term viability and community governance.",

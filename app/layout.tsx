@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI avatar",
-  description: "3D avatar with AI Agents",
+  title: "DeepGov Agents",
+  description: "A collection of agents for DeepGov",
 };
 
 export default function RootLayout({

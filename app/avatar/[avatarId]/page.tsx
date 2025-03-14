@@ -4,6 +4,19 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ avatarId: string }>;
+}) {
+  const { avatarId } = await params;
+  const model = models.find((model) => model.id === avatarId);
+  return {
+    title: model?.title,
+    description: model?.desctiption,
+  };
+}
+
 export default async function Page({
   params,
 }: {

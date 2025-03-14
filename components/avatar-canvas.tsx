@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import Model from "@/components/model";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 
 export default function AvatarCanvas({ model }: { model: string }) {
   const gltfCanvasParentRef = useRef<HTMLDivElement>(null);
@@ -16,11 +16,8 @@ export default function AvatarCanvas({ model }: { model: string }) {
         flat
       >
         <mesh position={[0, -1, 0]}>
-          <directionalLight
-            intensity={3}
-            position={[0, 3, 2]}
-            color={"0xFFFFFF"}
-          />
+          <ambientLight intensity={3} />
+          <Environment preset="city" />
           <Model url={model} />
           <OrbitControls
             enableZoom={true}

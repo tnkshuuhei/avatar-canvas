@@ -9,7 +9,7 @@ export default function Home() {
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-12 text-center">
           Agents
         </h2>
-        <div className="grid grid-cols-3 gap-4 items-center sm:items-start">
+        <div className="grid md:grid-cols-3 gap-4 items-center sm:items-start">
           {models.map((model) => (
             <Link href={`/avatar/${model.id}`} key={model.id}>
               <ProjectCard

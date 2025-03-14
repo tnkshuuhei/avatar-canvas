@@ -165,62 +165,83 @@ export default function AvatarPage({ avatarId }: { avatarId: string }) {
   }, [text]);
 
   return (
-    <div className="container flex md:flex-row flex-col p-8 gap-8 sm:grid-cols-2">
-      <div className="items-center sm:items-start">
-        <AvatarCanvas model={model?.model as string} />
-      </div>
-      <div className="flex flex-col gap-4 w-full">
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="question"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ask Question</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormDescription>Ask a question to the agent</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="w-full lg:w-2/5 flex justify-center">
+          <div className="relative w-full max-w-sm h-auto aspect-square">
+            <AvatarCanvas model={model?.model as string} />
+          </div>
+        </div>
 
-            <Button
-              type="submit"
-              className="w-full p-2 cursor-pointer"
-              disabled={isLoading || isLoadingStream || isSpeaking}
+        <div className="w-full lg:w-3/5 flex flex-col gap-4">
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
             >
-              {isLoading ? (
-                <div className="flex items-center flex-row">
-                  <span>
-                    <Loader className="h-4 w-4 animate-spin mr-2" />
-                  </span>
-                  <span>Thinking...</span>
-                </div>
-              ) : isLoadingStream ? (
-                <div className="flex items-center flex-row">
-                  <span>
-                    <Loader className="h-4 w-4 animate-spin mr-2" />
-                  </span>
-                  <span>Loading audio...</span>
-                </div>
-              ) : (
-                "Submit"
-              )}
-            </Button>
-          </form>
-        </Form>
-        {isLoading && <Skeleton className="h-[400px] w-full" />}
-        {safeHtmlContent && (
-          <article className="prose lg:prose-lg p-4">
-            <div dangerouslySetInnerHTML={{ __html: safeHtmlContent }} />
-          </article>
-        )}
+              <FormField
+                control={form.control}
+                name="question"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium">
+                      Ask Question
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        className="min-h-24 text-base p-3"
+                        placeholder="Ask something..."
+                      />
+                    </FormControl>
+                    <FormDescription className="text-sm">
+                      Ask a question to the agent
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full p-3 text-base font-medium "
+                disabled={isLoading || isLoadingStream || isSpeaking}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader className="h-4 w-4 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
+                ) : isLoadingStream ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader className="h-4 w-4 animate-spin" />
+                    <span>Loading audio...</span>
+                  </div>
+                ) : isSpeaking ? (
+                  <span>Speaking...</span>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="mt-4 bg-white/5 rounded-lg">
+            {isLoading ? (
+              <Skeleton className="h-64 w-full rounded-lg" />
+            ) : safeHtmlContent ? (
+              <div className="p-4 h-full overflow-y-auto max-h-96">
+                <article className="prose prose-invert lg:prose-lg w-full">
+                  <div dangerouslySetInnerHTML={{ __html: safeHtmlContent }} />
+                </article>
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-400">
+                Ask a question to see the response
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

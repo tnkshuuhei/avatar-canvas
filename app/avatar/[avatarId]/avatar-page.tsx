@@ -1,121 +1,226 @@
 "use client";
 import AvatarCanvas from "@/components/avatar-canvas";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useRef, useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { ElevenLabsClient } from "elevenlabs";
+import { models } from "@/utils/model";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader } from "lucide-react";
+const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT;
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+
+const formSchema = z.object({
+  question: z
+    .string()
+    .min(10, {
+      message: "Question must be at least 10 characters long",
+    })
+    .max(50, {
+      message: "Question must be at most 50 characters long",
+    }),
+});
+
+const client = new ElevenLabsClient({
+  apiKey: process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY!,
+});
 
 export default function AvatarPage({ avatarId }: { avatarId: string }) {
   const [text, setText] = useState<string>("");
+  const [safeHtmlContent, setSafeHtmlContent] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const lipSyncRef = useRef<boolean>(false);
+  const [isLoadingStream, setIsLoadingStream] = useState<boolean>(false);
+  const model = models.find((model) => model.id === avatarId);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      question: "How would you evaluate a project?",
+    },
+  });
+  async function handleSubmit(formData: z.infer<typeof formSchema>) {
+    setText("");
+    setSafeHtmlContent("");
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setText(e.target.value);
-  };
+    const data = {
+      text: formData.question,
+      user_id: "test_user",
+    };
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${endpoint}/personalities/${avatarId}/ask`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      const result = await response.json();
 
-  const startSpeaking = () => {
-    if (!text.trim()) return;
+      setText(result.text);
+      setIsLoading(false);
 
-    if (isSpeaking) {
-      stopSpeaking();
-      return;
+      setIsLoadingStream(true);
+
+      const audioStream = await client.textToSpeech.convertAsStream(
+        model?.voice as string,
+        {
+          output_format: "mp3_44100_128",
+          text: result.text,
+          model_id: "eleven_multilingual_v2",
+        }
+      );
+
+      const chunks: Buffer[] = [];
+      for await (const chunk of audioStream) {
+        chunks.push(chunk);
+      }
+      const content = Buffer.concat(chunks);
+
+      const blob = new Blob([content], { type: "audio/mp3" });
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+
+      audio.onplay = () => {
+        console.log("Audio playback started");
+        window.dispatchEvent(new CustomEvent("speechStart"));
+        setIsSpeaking(true);
+
+        window.dispatchEvent(
+          new CustomEvent("lipSync", {
+            detail: { active: true, text: result.text },
+          })
+        );
+      };
+
+      audio.onended = () => {
+        console.log("Audio playback ended");
+        window.dispatchEvent(new CustomEvent("speechEnd"));
+        setIsSpeaking(false);
+
+        window.dispatchEvent(
+          new CustomEvent("lipSync", {
+            detail: { active: false },
+          })
+        );
+
+        URL.revokeObjectURL(url);
+      };
+
+      audio.play().catch((err) => {
+        console.error("Failed to play audio", err);
+      });
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingStream(false);
     }
+  }
 
-    // create a new SpeechSynthesisUtterance instance
-    utteranceRef.current = new SpeechSynthesisUtterance(text);
-
-    // language setting
-    utteranceRef.current.lang = "en-US";
-
-    // event listener for when the speech starts
-    utteranceRef.current.onstart = () => {
-      console.log("Speech synthesis started");
-      // emit speechStart event to start lip sync
-      window.dispatchEvent(new CustomEvent("speechStart"));
-    };
-
-    // event listener for when the speech ends
-    utteranceRef.current.onend = () => {
-      console.log("Speech synthesis ended");
-      setIsSpeaking(false);
-      lipSyncRef.current = false;
-
-      // emit speechEnd event to stop lip sync
-      window.dispatchEvent(new CustomEvent("speechEnd"));
-    };
-
-    // set lip sync flag to true
-    lipSyncRef.current = true;
-
-    // set speaking flag to true
-    setIsSpeaking(true);
-
-    // emit lipSync event to start lip sync
-    window.dispatchEvent(
-      new CustomEvent("lipSync", {
-        detail: { active: true, text: text },
-      })
-    );
-
-    // wait for lip sync setup to complete before starting speech
-    // this is a workaround to ensure that the lip sync setup is complete
-    setTimeout(() => {
-      // start speaking
-      window.speechSynthesis.speak(utteranceRef.current!);
-    }, 100);
-  };
-
-  const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-    lipSyncRef.current = false;
-
-    window.dispatchEvent(
-      new CustomEvent("lipSync", {
-        detail: { active: false },
-      })
-    );
-
-    window.dispatchEvent(new CustomEvent("speechEnd"));
-  };
+  useEffect(() => {
+    async function sanitizeHtml() {
+      const rawHtml = await marked(text || "");
+      const sanitizedHtml = DOMPurify.sanitize(rawHtml, {
+        ALLOWED_TAGS: [
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "p",
+          "a",
+          "ul",
+          "ol",
+          "li",
+          "strong",
+          "em",
+          "code",
+          "pre",
+          "blockquote",
+        ],
+        ALLOWED_ATTR: ["href"],
+      });
+      setSafeHtmlContent(sanitizedHtml);
+    }
+    sanitizeHtml();
+  }, [text]);
 
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <div className="grid grid-cols-2 gap-4 items-center sm:items-start">
-          <AvatarCanvas model={avatarId} />
-          <div className="w-full flex flex-col gap-4">
-            <Input
-              placeholder="Enter text to speak"
-              value={text}
-              onChange={handleTextChange}
-              className="w-full"
-            />
-            <div className="flex gap-2">
-              <Button
-                onClick={startSpeaking}
-                className={`cursor-pointer ${
-                  isSpeaking
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-blue-500 hover:bg-blue-600"
-                }`}
-              >
-                {isSpeaking ? "Speaking" : "Speak"}
-              </Button>
-              {isSpeaking && (
-                <Button
-                  className="cursor-pointer"
-                  onClick={stopSpeaking}
-                  variant="outline"
-                >
-                  Stop
-                </Button>
+    <div className="container flex md:flex-row flex-col p-8 gap-8 sm:grid-cols-2">
+      <div className="items-center sm:items-start">
+        <AvatarCanvas model={model?.model as string} />
+      </div>
+      <div className="flex flex-col gap-4 w-full">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="question"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ask Question</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormDescription>Ask a question to the agent</FormDescription>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-          </div>
-        </div>
-      </main>
+            />
+
+            <Button
+              type="submit"
+              className="w-full p-2 cursor-pointer"
+              disabled={isLoading || isLoadingStream || isSpeaking}
+            >
+              {isLoading ? (
+                <div className="flex items-center flex-row">
+                  <span>
+                    <Loader className="h-4 w-4 animate-spin mr-2" />
+                  </span>
+                  <span>Thinking...</span>
+                </div>
+              ) : isLoadingStream ? (
+                <div className="flex items-center flex-row">
+                  <span>
+                    <Loader className="h-4 w-4 animate-spin mr-2" />
+                  </span>
+                  <span>Loading audio...</span>
+                </div>
+              ) : (
+                "Submit"
+              )}
+            </Button>
+          </form>
+        </Form>
+        {isLoading && <Skeleton className="h-[400px] w-full" />}
+        {safeHtmlContent && (
+          <article className="prose lg:prose-lg p-4">
+            <div dangerouslySetInnerHTML={{ __html: safeHtmlContent }} />
+          </article>
+        )}
+      </div>
     </div>
   );
 }

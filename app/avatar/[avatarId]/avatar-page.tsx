@@ -17,11 +17,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
-const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT;
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+
+const endpoint = process.env.NEXT_PUBLIC_API_ENDPOINT;
 
 const formSchema = z.object({
   question: z
